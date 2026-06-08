@@ -1,73 +1,133 @@
-Spécification Technique
+Spécification Technique (Version enrichie avec stack cible)
 
 ## 1. Architecture générale
-Architecture cloud-native conteneurisée.
+Architecture cloud-native conteneurisée, pensée pour Kubernetes.
 
 Composants principaux :
-- API Backend (FastAPI – Python)
-- Service de traitement asynchrone (workers)
+- Backend API (FastAPI – Python 3.12+)
+- Workers asynchrones (Celery)
 - Base de données PostgreSQL
-- Stockage objet compatible S3
-- Moteur OCR
-- Services IA (extraction + détection fraude)
+- Cache & broker Redis
+- Stockage objet S3 compatible
+- Services IA (OCR, extraction, fraude)
+- Frontend Next.js (React + TypeScript)
 
-Architecture orientée microservices ou services modulaires.
-
----
-
-## 2. Multi-tenancy
-- Base de données unique.
-- Isolation logique via `tenant_id`.
-- Conception évolutive vers schéma ou base dédiée.
+Cloud cible MVP :
+- AWS (prioritaire)
+- Alternatives possibles : OVHcloud, Scaleway
 
 ---
 
-## 3. Pipeline asynchrone
-Flux technique :
-1. Upload → création d’un enregistrement Job
-2. Mise en file d’attente
-3. Worker traite le document
-4. Stockage résultats
-5. Mise à jour statut
-6. Notification webhook
+## 2. Stack Backend
+- Python 3.12+
+- FastAPI
+- Pydantic
+- SQLAlchemy
+- Alembic (migrations)
+- PostgreSQL
+- Redis
+- Celery (traitement asynchrone)
 
-Objectifs :
-- Scalabilité horizontale
-- Résilience aux pics de charge
-- Traitement < 30 secondes pour la majorité des documents
+Architecture modulaire compatible microservices.
 
 ---
 
-## 4. Stockage
-- Documents : stockage objet S3 compatible
+## 3. Frontend
+- Next.js (React + TypeScript)
+- Tailwind CSS
+- ShadCN UI
+- React Query (TanStack Query)
+- Authentification via OIDC
+
+Fonctionnalités couvertes :
+- Gestion documentaire
+- Visualisation des documents
+- Revue des résultats IA
+- Dashboard
+- Administration multi-tenant
+
+---
+
+## 4. Orchestration et déploiement
+### Développement
+- Docker obligatoire
+- Docker Compose pour environnement local
+
+### Production
+- Kubernetes
+- EKS si AWS retenu
+
+L’architecture doit être compatible Kubernetes dès le MVP.
+
+---
+
+## 5. Stockage
+### Documents
+- Amazon S3 ou stockage compatible S3
 - Chiffrement au repos
 - TLS en transit
 - Séparation logique par tenant
-- Politique de rétention configurable
+
+### Base de données
+- PostgreSQL
+- Isolation logique via `tenant_id`
+
+### Cache / Broker
+- Redis
 
 ---
 
-## 5. Moteur IA
+## 6. Pipeline asynchrone
+Flux technique :
+1. Upload → création Job
+2. Mise en file Redis
+3. Traitement par worker Celery
+4. OCR
+5. Extraction
+6. Scoring fraude
+7. Stockage résultats
+8. Notification webhook
 
-### 5.1 OCR
-- PaddleOCR, Tesseract ou équivalent
+Objectifs :
+- Scalabilité horizontale des workers
+- Résilience aux pics de charge
+- Temps moyen de traitement < 30 secondes
 
-### 5.2 Extraction
+---
+
+## 7. IA et OCR
+### OCR
+- PaddleOCR
+- DocTR
+
+### Extraction
 - Modèles IA pré-entraînés
-- Structuration des champs par type de document
+- Utilisation possible de LLM pour extraction et validation
 
-### 5.3 Détection de fraude
-- Système hybride : règles + modèles IA
-- Détection probabiliste
-- Analyse forensique avancée
+### Détection de fraude
+- Modèles spécialisés de détection d’anomalies
+- Approche hybride (règles + IA)
 
-### 5.4 Versioning
+Architecture compatible avec :
+- Intégration future de modèles open source
+- Intégration de modèles propriétaires
+
+### Versioning
 - Version des modèles enregistrée
 - Historisation des règles appliquées
 
 ---
 
-## 6. API REST
+## 8. Recherche et filtrage
+MVP :
+- Recherche via PostgreSQL
+
+Évolution :
+- OpenSearch / Elasticsearch
+
+---
+
+## 9. API REST
 Fonctionnalités :
 - Upload document
 - Récupération statut job
@@ -77,24 +137,50 @@ Fonctionnalités :
 
 Authentification :
 - OAuth2 / OIDC
-- JWT pour accès API
-- Compatibilité SAML et OIDC pour SSO entreprise
+- JWT
+- Compatibilité SAML et OIDC (SSO entreprise)
 
 ---
 
-## 7. Sécurité
+## 10. Observabilité
+- Prometheus (métriques)
+- Grafana (visualisation)
+- Sentry (gestion erreurs)
+
+Objectif : monitoring applicatif et supervision des traitements.
+
+---
+
+## 11. Sécurité
 - Conformité RGPD
-- Hébergement en Europe
-- Chiffrement TLS
+- Hébergement Europe
+- TLS obligatoire
 - Chiffrement au repos
 - Journalisation complète des accès
-- Séparation stricte dev / staging / production
-- Gestion fine des permissions (RBAC)
+- RBAC
+- Séparation dev / staging / production
 
 ---
 
-## 8. Audit et traçabilité
-Stockage des éléments suivants :
+## 12. CI/CD
+- GitHub (gestion code source)
+- GitHub Actions (CI/CD)
+- Build Docker automatisé
+- Déploiement automatisé vers staging
+- Déploiement automatisé vers production
+
+---
+
+## 13. Scalabilité
+- Conteneurisation Docker
+- Scalabilité horizontale (API + workers)
+- Compatible auto-scaling Kubernetes
+- Support de plusieurs milliers de documents/jour/client
+
+---
+
+## 14. Audit et traçabilité
+Stockage obligatoire :
 - Entrées brutes
 - Résultats OCR
 - Scores détaillés
@@ -102,14 +188,6 @@ Stockage des éléments suivants :
 - Version des modèles
 - Historique des actions utilisateurs
 
-Objectif : auditabilité complète.
-
----
-
-## 9. Scalabilité
-- Conteneurisation Docker
-- Scalabilité horizontale des workers
-- Architecture compatible montée en charge automatique
-- Support de plusieurs milliers de documents/jour/client
+Objectif : auditabilité complète et conformité réglementaire.
 
 ---
