@@ -1,4 +1,4 @@
-# Dockia – Spécification Fonctionnelle
+# Dockia – Spécification Fonctionnelle (Version enrichie)
 
 ## 1. Vision et objectifs
 Dockia est une plateforme SaaS multi-clients d’extraction intelligente de documents et de détection de fraude par IA.
@@ -38,6 +38,9 @@ Canaux d’entrée :
 ### 3.1 Gestion multi-tenant
 - Isolation logique des données via `tenant_id`.
 - Configuration spécifique par client (règles, seuils, rétention).
+- Administration dédiée par tenant via interface web.
+
+---
 
 ### 3.2 Pipeline de traitement documentaire
 Flux métier :
@@ -52,12 +55,20 @@ Flux métier :
 
 Traitement asynchrone par défaut.
 
+Statuts possibles d’un job :
+- `uploaded`
+- `processing`
+- `completed`
+- `failed`
+- `under_review`
+
 ---
 
 ### 3.3 Extraction structurée
 - OCR multi-format.
 - Extraction des champs clés selon le type de document.
 - Restitution au format structuré exploitable via API.
+- Affichage structuré dans l’interface analyste.
 - Possibilité de correction manuelle par un analyste.
 
 ---
@@ -77,7 +88,7 @@ Modèle hybride combinant :
   - Anomalies visuelles
   - Suspicion de génération/modification par IA
 
-Les règles et seuils doivent être configurables par client.
+Les règles et seuils sont configurables par client.
 
 ---
 
@@ -98,16 +109,18 @@ Les résultats sont présentés comme indicateurs de risque.
 ---
 
 ### 3.6 Human-in-the-Loop
-Interface analyste affichant :
-- Document original
-- Données extraites
-- Signaux de fraude
-- Score global et sous-scores
-- Facteurs explicatifs
+Interface analyste permettant :
+- Visualisation du document (viewer intégré)
+- Consultation des données extraites
+- Visualisation des signaux de fraude
+- Consultation du score global et des sous-scores
+- Affichage des facteurs explicatifs
 
 Actions possibles :
 - Correction des champs
-- Validation / rejet
+- Validation
+- Rejet
+- Mise en revue
 - Ajout de commentaires
 
 Rôles utilisateurs :
@@ -120,7 +133,7 @@ Rôles utilisateurs :
 ---
 
 ### 3.7 Explicabilité et audit
-Chaque décision doit inclure :
+Chaque décision inclut :
 - Facteurs influençant le score
 - Anomalies détectées
 - Niveau de confiance
@@ -132,13 +145,18 @@ Historisation obligatoire :
 - Résultats générés
 - Actions et validations humaines
 
+Objectif : auditabilité complète et traçabilité réglementaire.
+
 ---
 
 ### 3.8 Tableau de bord
+Fonctionnalités :
 - Suivi des documents traités
 - Visualisation des statuts des jobs
-- Indicateurs de volume et performance
+- Indicateurs de volume
+- Indicateurs de performance
 - Historique des décisions
+- Filtres par période, statut, type de document
 
 ---
 
@@ -147,6 +165,7 @@ Historisation obligatoire :
 - Conservation des résultats structurés par défaut
 - Conservation limitée des documents sources
 - Suppression automatique possible
+- Respect des exigences RGPD
 
 ---
 
@@ -155,6 +174,19 @@ Historisation obligatoire :
 - Les seuils de validation automatique sont configurables par client.
 - Les décisions humaines sont historisées et exploitables pour amélioration continue.
 - Les données d’un tenant ne sont jamais accessibles à un autre.
+
+---
+
+## 5. Interface utilisateur (MVP)
+L’interface web (Next.js) doit permettre :
+- Upload de documents
+- Suivi des traitements
+- Revue analyste complète
+- Administration multi-tenant
+- Gestion des utilisateurs et rôles
+- Configuration des seuils de scoring
+
+L’authentification se fait via OIDC (compatible SSO entreprise).
 
 ---
 
